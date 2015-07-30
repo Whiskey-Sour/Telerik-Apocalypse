@@ -1,5 +1,5 @@
-var gameModule=function(){
-    var game={
+var gameModule = function(){
+    var game = {
         startGame: function(){
             return play();
         }
@@ -12,6 +12,7 @@ var gameModule=function(){
             create: create,
             update: update
         });
+
         //Container for all physics object groups, and init
         var gameGroupWithPhysics = {
             add: function (groupName) {
@@ -19,6 +20,7 @@ var gameModule=function(){
                 this[groupName].enableBody = true;
             }
         };
+
         //Loading assets
         function preload() {
             game.load.image('loose', 'assets/loose-screen.png');
@@ -35,6 +37,7 @@ var gameModule=function(){
             game.load.spritesheet('robot', 'assets/robot.png', frameWidthBot, frameHeightBot);
             game.load.spritesheet('border', 'assets/border-block.png', 22, 32);
         }
+
         //Varibles used in the game
         var controller,
             platforms,
@@ -53,8 +56,9 @@ var gameModule=function(){
             frameHeightJohn = 225,
             frameWidthBot = 96,
             frameHeightBot = 202,
-            axRange = 1000,
+            maxRange = 1000,
             totalBulletVelocityScale = 300;
+
         // init game
         function create() {
             createWorld();
@@ -68,15 +72,14 @@ var gameModule=function(){
             createBonusTokens();
             createTurret();
         }
+
         // game loop
-
-
         function update() {
             //Old values for indicators
             oldLives = player.lives;
             oldAmmo = player.ammo;
 
-            //Updates every game loop itteration
+            //Updates every game loop iteration
             createController();
             playerUpdate();
             botsUpdate();
@@ -87,7 +90,6 @@ var gameModule=function(){
             indicatorUpdate(player, oldLives, gameGroupWithPhysics, oldAmmo);
             endGameCheck();
         }
-
 
         /*Group Management*/
         function createAllGroups() {
@@ -111,23 +113,22 @@ var gameModule=function(){
         /*Populating game world*/
         function createBots() {
             var dir;
+
             //bots in second segment
             for (var i = 0; i < CONSTANTS.numberOfBots; i += 1) {
                 dir = Math.random() >= 0.5 ? 1 : -1;
                 createBot(CONSTANTS.screen.width + i * 80, 700, dir);
             }
+
             //single bot in the first segment
             createBot(550, worldHeight - 650, 1);
         }
 
         function createWorld() {
-            //worldSize
-            game.world.setBounds(0, 0, CONSTANTS.screen.width*4, worldHeight);
+            game.world.setBounds(0, 0, CONSTANTS.screen.width * 4, worldHeight);
 
-            //Physics
             game.physics.startSystem(Phaser.Physics.ARCADE);
 
-            //BackGround
             background = game.add.sprite(0, 0, 'background');
             background.scale.setTo(3, 1.1);
             background.alpha = 1;
@@ -158,10 +159,10 @@ var gameModule=function(){
             var ground = gameGroupWithPhysics.platforms.create(0, game.world.height - 64, 'ground');
             ground.scale.setTo(8, 2);
             ground.body.immovable = true;
+
             SegmentOne();
             SegmentTwo();
             SegmentThree();
-            //addPlatforms: to be implemented
         }
 
         function createBonusTokens() {
@@ -172,11 +173,11 @@ var gameModule=function(){
         }
 
         function createSpikes() {
-            //segement three
             var spikeCount = 15,
                 spike,
                 i;
 
+            // for segment three
             for (i = 0; i < spikeCount; i += 1) {
                 spike = gameGroupWithPhysics.spikes.create(1700 + i * 50, 800, 'spike');
             }
@@ -186,10 +187,8 @@ var gameModule=function(){
             //sprite: placeHolder
             player = game.add.sprite(200, game.world.height - 150, 'john');
 
-            //physics
             game.physics.arcade.enable(player);
 
-            //gravity
             player.body.gravity.y = 500;
             player.body.collideWorldBounds = true;
 
@@ -201,7 +200,7 @@ var gameModule=function(){
             player.animations.add('faceRightJump', [28], 10, true);
             player.animations.add('faceLeftJump', [29], 10, true);
 
-            // additional attrbutes
+            // additional attributes
             player.scale.setTo(0.25);
             player.lives = 3;
             player.score = 0;
@@ -210,7 +209,7 @@ var gameModule=function(){
             player.ammo = 5;
             player.timeOfLastHit = game.time.totalElapsedSeconds();
             player.immortalTime = 1.5;
-            player.canBeHurt = true; // test value
+            player.canBeHurt = true;
         }
 
         function createTurret() {
@@ -218,22 +217,25 @@ var gameModule=function(){
             turret = game.add.sprite(3000, 700, 'turret');
             turret.scale.setTo(0.5);
             turret.angle = 30;
-            //additional atributes
+
+            //additional attributes
             turret.reloadTime = 2;
             turret.timeOfLastShot = game.time.totalElapsedSeconds();
         }
 
         /* Single Object Creators*/
         function bulletPlayer() {
-
+            //generates a bullet coming from player
             var bullet = gameGroupWithPhysics.bullets.create(player.x + 50 * player.lastDirection, player.y, 'shot');
             game.physics.arcade.enable(bullet);
+
             bullet.body.velocity.x = 300 * player.lastDirection;
             player.ammo -= 1;
             return bullet;
-        } //generates a bullet coming from player
+        }
 
         function bulletTurret() {
+            //generates bullet from turret
             var bullet = gameGroupWithPhysics.bullets.create(turret.x - 30, turret.y, 'shot');
             game.physics.arcade.enable(bullet);
 
@@ -241,7 +243,7 @@ var gameModule=function(){
             bullet.body.velocity.x = -totalBulletVelocityScale * Math.cos(turret.angle * Math.PI / 180);
             player.ammo -= 1;
             return bullet;
-        } //generates bullet from turret
+        }
 
         function createLedge(ledgeX, ledgeY, putBorders, scaleX, scaleY) {
             var platformOriginalWidth = 400,
@@ -281,7 +283,6 @@ var gameModule=function(){
 
             game.physics.arcade.enable(bot);
 
-            //game.physics.arcade.collide(bot, platforms);
             bot.body.gravity.y = 500;
             bot.animations.add('left', [13, 12, 11, 10, 9], 10, true);
             bot.animations.add('right', [1, 2, 3, 4, 5, 6], 10, true);
@@ -318,22 +319,20 @@ var gameModule=function(){
 
         function playerUpdate() {
             //collide with ground and platforms
-
             game.physics.arcade.collide(player, gameGroupWithPhysics.platforms);
+
             //retain speed in air or make it 0 when touching ground
             if (player.body.touching.down) {
                 player.body.velocity.x = 0;
                 player.body.gravity.x = 0;
-
             }
+
             //movement left/right
             if (controller.left.isDown) {
-
                 player.body.velocity.x = -xVelocityScale;
                 player.animations.play('left');
                 player.lastDirection = -1;
             } else if (controller.right.isDown) {
-
                 player.body.velocity.x = xVelocityScale;
                 player.animations.play('right');
                 player.lastDirection = 1;
@@ -346,19 +345,20 @@ var gameModule=function(){
                 }
             }
 
-
             if (controller.fire.isDown && timer >= reloadTimePlayer && player.ammo > 0) {
                 bulletPlayer();
                 timer = 0;
             }
+
             timer += 1;
-            //movement jump
-            //prevent continuous jumping
+
+            // movement jump
+            // prevent continuous jumping
             if (player.body.touching.down && !controller.up.isDown) {
                 canJump = true;
             }
-            //  Allow the player to jump if they are touching the ground.
 
+            // Allow the player to jump if they are touching the ground.
             if (controller.up.isDown && player.body.touching.down && canJump) {
                 player.body.velocity.y = -yVelocityScale;
                 canJump = false;
@@ -375,11 +375,13 @@ var gameModule=function(){
                     player.animations.play('faceLeftJump');
                 }
             }
-            //resistance in x
+
+            // resistance in x
             var speed = Math.abs(player.body.velocity.x);
             if (speed > 0) {
                 player.body.gravity.x = (speed / player.body.velocity.x) * 25 * -1;
             }
+
             //hit track and check if player is invunerable
             player.canBeHurt = player.timeOfLastHit + player.immortalTime < game.time.totalElapsedSeconds();
 
@@ -388,7 +390,6 @@ var gameModule=function(){
             } else {
                 player.alpha = 1;
             }
-
         }
 
         function indicatorUpdate(player, oldLives, gameGroupWithPhysics, oldAmmo) {
@@ -396,6 +397,7 @@ var gameModule=function(){
                 destroyGroup(gameGroupWithPhysics.lives);
                 drawHearts();
             }
+
             if (player.ammo !== oldAmmo) {
                 destroyGroup(gameGroupWithPhysics.playerAmmo);
                 drawAmmo();
@@ -450,6 +452,7 @@ var gameModule=function(){
             if (bot.body.touching.right || bot.body.touching.left) {
                 bot.direction *= -1;
             }
+
             //movement
             bot.body.velocity.x = xVelocityScale * 1.2 * bot.direction;
             if (bot.body.velocity.x <= 0) {
@@ -460,13 +463,17 @@ var gameModule=function(){
         }
 
         function cameraUpdate() {
-            //keeps in the middle of the screen always
+            // keeps in the middle of the screen always
             if (game.camera.x < CONSTANTS.screen.width / 2) {
                 game.camera.x = 0;
-            } //left most camera
+            }
+
+            // left most camera
             if (game.camera.x > CONSTANTS.screen.width * 3 - CONSTANTS.screen.width / 2) {
                 game.camera.x = CONSTANTS.screen.width * 3 - CONSTANTS.screen.width / 2;
-            } //right most camera
+            }
+
+            // right most camera
             game.camera.x = player.x - CONSTANTS.screen.width / 2;
             game.camera.y = player.y - 300;
         }
@@ -491,7 +498,6 @@ var gameModule=function(){
         }
 
         function playerCollision() {
-
             game.physics.arcade.collide(gameGroupWithPhysics.bonus, platforms);
             game.physics.arcade.overlap(player, gameGroupWithPhysics.bonus, collect, null, this);
             game.physics.arcade.overlap(player, gameGroupWithPhysics.bots, die, null, this);
@@ -502,13 +508,11 @@ var gameModule=function(){
         function collect(player, bon) {
             bon.kill();
             player.bonusCount += 1;
-
         }
 
         function hitBot(bullet, bot) {
             bullet.kill();
             bot.kill();
-
         }
 
         function hitWall(bullet, plat) {
@@ -531,7 +535,8 @@ var gameModule=function(){
             create: create,
             loop: update
         };
-    };
+    }
+
     return game;
 }();
 
