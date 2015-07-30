@@ -242,7 +242,6 @@ var gameModule = function(){
 
             bullet.body.velocity.y = -totalBulletVelocityScale * Math.sin(turret.angle * Math.PI / 180);
             bullet.body.velocity.x = -totalBulletVelocityScale * Math.cos(turret.angle * Math.PI / 180);
-            player.ammo -= 1;
             return bullet;
         }
 
