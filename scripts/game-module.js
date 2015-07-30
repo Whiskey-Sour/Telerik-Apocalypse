@@ -57,6 +57,7 @@ var gameModule = function(){
             frameWidthBot = 96,
             frameHeightBot = 202,
             maxRange = 1000,
+            neededBonusCount = 4,
             totalBulletVelocityScale = 300;
 
         // init game
@@ -245,6 +246,7 @@ var gameModule = function(){
             return bullet;
         }
 
+        // Creates ledge. When putBorders is true, adds borders that constrain the bots.
         function createLedge(ledgeX, ledgeY, putBorders, scaleX, scaleY) {
             var platformOriginalWidth = 400,
                 platformOriginalHeight = 32,
@@ -275,8 +277,8 @@ var gameModule = function(){
                 borderRight = gameGroupWithPhysics.botBoundaries.create(ledgeX + ledgeWidth, borderY, 'border');
                 borderRight.body.immovable = true;
                 borderRight.renderable = false;
-            } //border creation
-        } // create ledges with option for placing borders that constrain botss
+            }
+        }
 
         function createBot(x, y, dir) {
             var bot = game.add.sprite(x, y, 'robot');
@@ -416,7 +418,7 @@ var gameModule = function(){
                 }, 2500);
             }
 
-            if (player.bonusCount === 4) {
+            if (player.bonusCount === neededBonusCount) {
                 player.kill();
                 winScreen = game.add.sprite(CONSTANTS.endScreen.x, CONSTANTS.endScreen.y, 'win');
                 player.x = 0;
@@ -515,18 +517,18 @@ var gameModule = function(){
             bot.kill();
         }
 
-        function hitWall(bullet, plat) {
+        function hitWall(bullet) {
             bullet.kill();
         }
 
-        function die(player, bot) {
+        function die(player) {
             if (player.canBeHurt) {
                 player.lives -= 1;
                 player.timeOfLastHit = game.time.totalElapsedSeconds();
             }
         }
 
-        function dieSpike(player, spike) {
+        function dieSpike(player) {
             player.lives = 0;
         }
 
