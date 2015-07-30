@@ -245,9 +245,9 @@ var gameModule = function() {
         function createSounds() {
             game.sound.volume = 0.05;
             jumpSound = game.add.audio('jump');
-            jumpSound.volume = 0.5;
+            jumpSound.volume = 0.3;
             fireSound = game.add.audio('fire');
-            fireSound.volume = 0.5;
+            fireSound.volume = 0.3;
             botHitSound = game.add.audio('bothit');
             pickupSound = game.add.audio('pickup');
             playerDeathSound = game.add.audio('playerdeath');
@@ -599,14 +599,12 @@ var gameModule = function() {
         function volumeUp(){
             if (game.sound.volume < 1) {
                 game.sound.volume += 0.02;
-                console.log(game.sound.volume);
             }
         }
 
         function volumeDown(){
             if (game.sound.volume > 0) {
                 game.sound.volume -= 0.02;
-                console.log(game.sound.volume);
             }
         }
 
