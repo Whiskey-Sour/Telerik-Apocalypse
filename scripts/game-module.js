@@ -324,17 +324,16 @@ var gameModule=function(){
             if (player.body.touching.down) {
                 player.body.velocity.x = 0;
                 player.body.gravity.x = 0;
-                //player.body.gravity.y=500
+
             }
             //movement left/right
             if (controller.left.isDown) {
-                //  Move to the left
+
                 player.body.velocity.x = -xVelocityScale;
-                //console.log(player.lastDirection);
                 player.animations.play('left');
                 player.lastDirection = -1;
             } else if (controller.right.isDown) {
-                //  Move to the right
+
                 player.body.velocity.x = xVelocityScale;
                 player.animations.play('right');
                 player.lastDirection = 1;
@@ -382,11 +381,8 @@ var gameModule=function(){
                 player.body.gravity.x = (speed / player.body.velocity.x) * 25 * -1;
             }
             //hit track and check if player is invunerable
-            if (player.timeOfLastHit + player.immortalTime < game.time.totalElapsedSeconds()) {
-                player.canBeHurt = true;
-            } else {
-                player.canBeHurt = false;
-            }
+            player.canBeHurt = player.timeOfLastHit + player.immortalTime < game.time.totalElapsedSeconds();
+
             if (!player.canBeHurt) {
                 player.alpha = Math.random();
             } else {
