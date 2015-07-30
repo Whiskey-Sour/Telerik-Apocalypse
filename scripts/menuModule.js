@@ -1,4 +1,10 @@
-var menu = function() {
+var menuModule=function(){
+    var menuObj={
+        createMenu: function(){
+            menu();
+        }
+    };
+    function menu() {
         var divIdName = 'game-menu',
             buttonsIdNames = ['btn-play', 'btn-about'],
             buttonsIdNamesLen = buttonsIdNames.length;
@@ -53,4 +59,6 @@ var menu = function() {
             Button: addButtons,
             Event: addEvents,
         };
-};
+    };
+    return menuObj;
+}();
