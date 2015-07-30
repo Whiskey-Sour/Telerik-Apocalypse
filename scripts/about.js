@@ -131,4 +131,8 @@ var about = function () {
         bomb = paper.group(circle, bombUpper, miniRect);
         bomb.animate({ transform: 't-660, 10' }, 2000, mina.bounce);
     }
+
+    return {
+        draw: drawControlsSection
+    };
 };

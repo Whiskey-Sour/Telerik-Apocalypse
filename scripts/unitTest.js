@@ -15,12 +15,26 @@ var menuTest=function(){
     var allChildFunctionsArePresent=true;
 
     if(menuObj.Menu==undefined && typeof (menuObj.Menu)==='function' ){ allChildFunctionsArePresent=false;}
-    if(menuObj.Div==undefined && typeof (menuObj.Menu)==='function' ){ allChildFunctionsArePresent=false;}
-    if(menuObj.Button==undefined && typeof (menuObj.Menu)==='function' ){ allChildFunctionsArePresent=false;}
-    if(menuObj.Event==undefined && typeof (menuObj.Menu)==='function' ){ allChildFunctionsArePresent=false;}
+    if(menuObj.Div==undefined && typeof (menuObj.Div)==='function' ){ allChildFunctionsArePresent=false;}
+    if(menuObj.Button==undefined && typeof (menuObj.Button)==='function' ){ allChildFunctionsArePresent=false;}
+    if(menuObj.Event==undefined && typeof (menuObj.Event)==='function' ){ allChildFunctionsArePresent=false;}
+    console.log('menu Unit Test: ');
+    console.log('menu exists and it is a function: '+menuExists);
+    console.log('menu builder, div builder, button builder, event builder are all present and are functions: '+allChildFunctionsArePresent);
+}();
 
-    console.log('Menu exists and it is a function: '+menuExists);
-    console.log('Menu builder, div builder, button builder, event builder are all present and are functions: '+allChildFunctionsArePresent);
+var aboutTest=function(){
+    var aboutFunc=about,
+        aboutObj=about();
+
+    var aboutExists=typeof (aboutFunc)==='function';
+
+    var allChildFunctionsArePresent=true;
+
+    if(aboutObj.draw==undefined && typeof (aboutObj.draw)==='function' ){ allChildFunctionsArePresent=false;}
+    console.log('about Unit Test: ');
+    console.log('about exists and it is a function: '+aboutExists);
+    console.log('about draw function is present and it is functions: '+allChildFunctionsArePresent);
 }();
 
 
