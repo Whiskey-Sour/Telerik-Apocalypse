@@ -1,11 +1,11 @@
-var gameModule = function(){
+var gameModule = function() {
     var game = {
-        startGame: function(){
+        startGame: function() {
             return play();
         }
     };
 
-    function play () {
+    function play() {
         //Phaser init
         var game = new Phaser.Game(CONSTANTS.screen.width, CONSTANTS.screen.height, Phaser.AUTO, '', {
             preload: preload,
@@ -15,7 +15,7 @@ var gameModule = function(){
 
         //Container for all physics object groups, and init
         var gameGroupWithPhysics = {
-            add: function (groupName) {
+            add: function(groupName) {
                 this[groupName] = game.add.group();
                 this[groupName].enableBody = true;
             }
@@ -36,6 +36,14 @@ var gameModule = function(){
             game.load.spritesheet('john', 'assets/john.png', frameWidthJohn, frameHeightJohn);
             game.load.spritesheet('robot', 'assets/robot.png', frameWidthBot, frameHeightBot);
             game.load.spritesheet('border', 'assets/border-block.png', 22, 32);
+            game.load.audio('jump', 'https://raw.githubusercontent.com/Whiskey-Sour/Beta/Sound/PhaserTest/assets/audio/spaceman.wav');
+            game.load.audio('fire', 'https://raw.githubusercontent.com/Whiskey-Sour/Beta/Sound/PhaserTest/assets/audio/pistol.wav');
+            game.load.audio('bothit', 'https://raw.githubusercontent.com/Whiskey-Sour/Beta/Sound/PhaserTest/assets/audio/sentry_explode.wav');
+            game.load.audio('theme', 'https://raw.githubusercontent.com/Whiskey-Sour/Beta/Sound/PhaserTest/assets/audio/HonkyTonkVillai2.ogg');
+            game.load.audio('pickup', 'https://raw.githubusercontent.com/Whiskey-Sour/Beta/Sound/PhaserTest/assets/audio/p-ping.mp3');
+            game.load.audio('playerdeath', 'https://raw.githubusercontent.com/Whiskey-Sour/Beta/Sound/PhaserTest/assets/audio/player_death.wav');
+            game.load.audio('step', 'https://raw.githubusercontent.com/Whiskey-Sour/Beta/Sound/PhaserTest/assets/audio/0085-1.ogg');
+            game.load.audio('playerhit', 'https://raw.githubusercontent.com/Whiskey-Sour/Beta/Sound/PhaserTest/assets/audio/player_hit.wav');
         }
 
         //Varibles used in the game
@@ -48,6 +56,14 @@ var gameModule = function(){
             oldLives,
             oldAmmo,
             turret,
+            jumpSound,
+            fireSound,
+            botHitSound,
+            themeSound,
+            pickupSound,
+            playerDeathSound,
+            stepSound,
+            playerHitSound,
             canJump = true,
             worldHeight = 900,
             xVelocityScale = 175,
@@ -72,6 +88,9 @@ var gameModule = function(){
             createSpikes();
             createBonusTokens();
             createTurret();
+            createSounds();
+            createController();
+            createEvents()
         }
 
         // game loop
@@ -81,7 +100,6 @@ var gameModule = function(){
             oldAmmo = player.ammo;
 
             //Updates every game loop iteration
-            createController();
             playerUpdate();
             botsUpdate();
             cameraUpdate();
@@ -224,6 +242,28 @@ var gameModule = function(){
             turret.timeOfLastShot = game.time.totalElapsedSeconds();
         }
 
+        function createSounds() {
+            game.sound.volume = 0.05;
+            jumpSound = game.add.audio('jump');
+            jumpSound.volume = 0.3;
+            fireSound = game.add.audio('fire');
+            fireSound.volume = 0.3;
+            botHitSound = game.add.audio('bothit');
+            pickupSound = game.add.audio('pickup');
+            playerDeathSound = game.add.audio('playerdeath');
+            themeSound = game.add.audio('theme');
+            stepSound = game.add.audio('step');
+            stepSound.volume = 0.3;
+            playerHitSound = game.add.audio('playerhit');
+            themeSound.loopFull();
+        }
+
+        function createEvents() {
+            controller.mute.onDown.add(muteSound, this);
+            controller.volumeUp.onDown.add(volumeUp, this);
+            controller.volumeDown.onDown.add(volumeDown, this);
+        }
+
         /* Single Object Creators*/
         function bulletPlayer() {
             //generates a bullet coming from player
@@ -242,6 +282,7 @@ var gameModule = function(){
 
             bullet.body.velocity.y = -totalBulletVelocityScale * Math.sin(turret.angle * Math.PI / 180);
             bullet.body.velocity.x = -totalBulletVelocityScale * Math.cos(turret.angle * Math.PI / 180);
+            bullet.angle = turret.angle;
             return bullet;
         }
 
@@ -296,6 +337,9 @@ var gameModule = function(){
         function createController() {
             controller = game.input.keyboard.createCursorKeys();
             controller.fire = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+            controller.mute = game.input.keyboard.addKey(Phaser.Keyboard.M);
+            controller.volumeUp = game.input.keyboard.addKey(Phaser.Keyboard.NUMPAD_ADD);
+            controller.volumeDown = game.input.keyboard.addKey(Phaser.Keyboard.NUMPAD_SUBTRACT);
         }
 
         /*Draw Functions*/
@@ -319,77 +363,89 @@ var gameModule = function(){
             reloadTimePlayer = 15;
 
         function playerUpdate() {
-            //collide with ground and platforms
-            game.physics.arcade.collide(player, gameGroupWithPhysics.platforms);
+            if (player.alive) {
+                //collide with ground and platforms
+                game.physics.arcade.collide(player, gameGroupWithPhysics.platforms);
 
-            //retain speed in air or make it 0 when touching ground
-            if (player.body.touching.down) {
-                player.body.velocity.x = 0;
-                player.body.gravity.x = 0;
-            }
-
-            //movement left/right
-            if (controller.left.isDown) {
-                player.body.velocity.x = -xVelocityScale;
-                player.animations.play('left');
-                player.lastDirection = -1;
-            } else if (controller.right.isDown) {
-                player.body.velocity.x = xVelocityScale;
-                player.animations.play('right');
-                player.lastDirection = 1;
-            } else {
-                //  Stand still
-                if (player.lastDirection == 1) {
-                    player.animations.play('faceRight');
-                } else {
-                    player.animations.play('faceLeft');
+                //retain speed in air or make it 0 when touching ground
+                if (player.body.touching.down) {
+                    player.body.velocity.x = 0;
+                    player.body.gravity.x = 0;
                 }
-            }
 
-            if (controller.fire.isDown && timer >= reloadTimePlayer && player.ammo > 0) {
-                bulletPlayer();
-                timer = 0;
-            }
+                //movement left/right
+                if (controller.left.isDown) {
+                    player.body.velocity.x = -xVelocityScale;
+                    player.animations.play('left');
+                    player.lastDirection = -1;
 
-            timer += 1;
+                    if (!stepSound.isPlaying && player.body.touching.down) {
+                        stepSound.play();
+                    }
+                } else if (controller.right.isDown) {
+                    player.body.velocity.x = xVelocityScale;
+                    player.animations.play('right');
+                    player.lastDirection = 1;
 
-            // movement jump
-            // prevent continuous jumping
-            if (player.body.touching.down && !controller.up.isDown) {
-                canJump = true;
-            }
-
-            // Allow the player to jump if they are touching the ground.
-            if (controller.up.isDown && player.body.touching.down && canJump) {
-                player.body.velocity.y = -yVelocityScale;
-                canJump = false;
-            }
-            if (controller.up.isDown) {
-                player.body.gravity.y = yVelocityScale;
-            } else {
-                player.body.gravity.y = 700;
-            }
-            if (!player.body.touching.down) {
-                if (player.lastDirection == 1) {
-                    player.animations.play('faceRightJump');
+                    if (!stepSound.isPlaying && player.body.touching.down) {
+                        stepSound.play();
+                    }
                 } else {
-                    player.animations.play('faceLeftJump');
+                    //  Stand still
+                    if (player.lastDirection == 1) {
+                        player.animations.play('faceRight');
+                    } else {
+                        player.animations.play('faceLeft');
+                    }
                 }
-            }
 
-            // resistance in x
-            var speed = Math.abs(player.body.velocity.x);
-            if (speed > 0) {
-                player.body.gravity.x = (speed / player.body.velocity.x) * 25 * -1;
-            }
+                if (controller.fire.isDown && timer >= reloadTimePlayer && player.ammo > 0) {
+                    bulletPlayer();
+                    timer = 0;
+                    fireSound.play();
+                }
 
-            //hit track and check if player is invunerable
-            player.canBeHurt = player.timeOfLastHit + player.immortalTime < game.time.totalElapsedSeconds();
+                timer += 1;
 
-            if (!player.canBeHurt) {
-                player.alpha = Math.random();
-            } else {
-                player.alpha = 1;
+                // movement jump
+                // prevent continuous jumping
+                if (player.body.touching.down && !controller.up.isDown) {
+                    canJump = true;
+                }
+
+                // Allow the player to jump if they are touching the ground.
+                if (controller.up.isDown && player.body.touching.down && canJump) {
+                    player.body.velocity.y = -yVelocityScale;
+                    canJump = false;
+                    jumpSound.play();
+                }
+                if (controller.up.isDown) {
+                    player.body.gravity.y = yVelocityScale;
+                } else {
+                    player.body.gravity.y = 700;
+                }
+                if (!player.body.touching.down) {
+                    if (player.lastDirection == 1) {
+                        player.animations.play('faceRightJump');
+                    } else {
+                        player.animations.play('faceLeftJump');
+                    }
+                }
+
+                // resistance in x
+                var speed = Math.abs(player.body.velocity.x);
+                if (speed > 0) {
+                    player.body.gravity.x = (speed / player.body.velocity.x) * 25 * -1;
+                }
+
+                //hit track and check if player is invunerable
+                player.canBeHurt = player.timeOfLastHit + player.immortalTime < game.time.totalElapsedSeconds();
+
+                if (!player.canBeHurt) {
+                    player.alpha = Math.random();
+                } else {
+                    player.alpha = 1;
+                }
             }
         }
 
@@ -411,7 +467,8 @@ var gameModule = function(){
                 looseSscreen = game.add.sprite(CONSTANTS.endScreen.x, CONSTANTS.endScreen.y, 'loose');
                 player.x = 0;
                 game.world.bringToTop(looseSscreen);
-                window.setTimeout(function () {
+                playerDeathSound.play();
+                window.setTimeout(function() {
                     game.destroy();
                     main.menu.createMenu();
                 }, 2500);
@@ -422,7 +479,7 @@ var gameModule = function(){
                 winScreen = game.add.sprite(CONSTANTS.endScreen.x, CONSTANTS.endScreen.y, 'win');
                 player.x = 0;
                 game.world.bringToTop(winScreen);
-                window.setTimeout(function () {
+                window.setTimeout(function() {
                     game.destroy();
                     main.menu.createMenu();
                 }, 2500);
@@ -480,7 +537,7 @@ var gameModule = function(){
         }
 
         var timeOfLastShotT = 0,
-        reloadTime = 2;
+            reloadTime = 2;
 
         function turretUpdate() {
             var xDistance = Math.abs(turret.x - player.x);
@@ -493,6 +550,7 @@ var gameModule = function(){
             if (timeOfLastShotT + reloadTime <= game.time.totalElapsedSeconds() && xDistance < maxRange) {
                 bulletTurret();
                 timeOfLastShotT = game.time.totalElapsedSeconds();
+                fireSound.play();
             }
 
             turret.angle = angle - 10.1;
@@ -509,11 +567,13 @@ var gameModule = function(){
         function collect(player, bon) {
             bon.kill();
             player.bonusCount += 1;
+            pickupSound.play();
         }
 
         function hitBot(bullet, bot) {
             bullet.kill();
             bot.kill();
+            botHitSound.play();
         }
 
         function hitWall(bullet) {
@@ -524,11 +584,28 @@ var gameModule = function(){
             if (player.canBeHurt) {
                 player.lives -= 1;
                 player.timeOfLastHit = game.time.totalElapsedSeconds();
+                playerHitSound.play();
             }
         }
 
         function dieSpike(player) {
             player.lives = 0;
+        }
+
+        function muteSound() {
+            game.sound.mute = !game.sound.mute;
+        }
+
+        function volumeUp(){
+            if (game.sound.volume < 1) {
+                game.sound.volume += 0.02;
+            }
+        }
+
+        function volumeDown(){
+            if (game.sound.volume > 0) {
+                game.sound.volume -= 0.02;
+            }
         }
 
         return {
@@ -540,5 +617,3 @@ var gameModule = function(){
 
     return game;
 }();
-
-
