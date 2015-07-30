@@ -1,0 +1,71 @@
+html, body, div, span, p, img {
+    margin:0;
+    padding:0;
+    border:0;
+    outline:0;
+    font-size:100%;
+    vertical-align:baseline;
+    background:transparent;
+
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+body {
+    line-height:1;
+}
+
+#game-menu {
+    position: relative;
+    width: 800px;
+    height: 600px;
+    background: url("../assets/menu-bg.png");
+}
+
+#game-menu button {
+    display: inline-block;
+    position: absolute;
+    left: 40px;
+    width: 190px;
+    height: 50px;
+    border-color: transparent;
+    background: transparent;
+}
+
+#btn-play {
+    top: 310px;
+}
+
+#btn-about {
+    top: 430px;
+}
+
+#story {
+    position: absolute;
+    top: 300px;
+    width: 800px;
+    height: 300px;
+    padding: 15px;
+    background-color: #E6E6E6;
+}
+
+#story-subsection {
+    font-family: 'Times New Roman';
+    font-size: 25px;
+    font-weight: 900;
+    line-height: 150%;
+    text-align: justify;
+    color: #000;
+    opacity: 0.8;
+}
+
+#btn-back {
+    position: absolute;
+    bottom: 20px;
+    right: 50px;
+    width: 210px;
+    height: 63px;
+    border-radius: 30px;
+    background: url("../assets/btn-back.png") no-repeat scroll 0 0 transparent;
+}
