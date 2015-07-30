@@ -503,4 +503,10 @@ var play = function() {
     function dieSpike(player, spike){
         player.lives = 0;
     }
+
+    return{
+        load: preload,
+        create: create,
+        loop: update
+    };
 };

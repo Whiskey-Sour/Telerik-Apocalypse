@@ -9,7 +9,7 @@ console.log('Menu is a function and exists: '+test1);*/
 var menuTest=function(){
     var menuFunc=menu,
         menuObj=menu();
-
+    document.body.innerHTML = "";
     var menuExists=typeof (menuFunc)==='function';
 
     var allChildFunctionsArePresent=true;
@@ -26,7 +26,7 @@ var menuTest=function(){
 var aboutTest=function(){
     var aboutFunc=about,
         aboutObj=about();
-
+    document.body.innerHTML = "";
     var aboutExists=typeof (aboutFunc)==='function';
 
     var allChildFunctionsArePresent=true;
@@ -35,6 +35,25 @@ var aboutTest=function(){
     console.log('about Unit Test: ');
     console.log('about exists and it is a function: '+aboutExists);
     console.log('about draw function is present and it is functions: '+allChildFunctionsArePresent);
+}();
+
+var playTest=function(){
+    var playFunc=play,
+        playObj=play();
+    Phaser.World=null;
+
+
+    var playExists=typeof (playFunc)==='function';
+
+    var allChildFunctionsArePresent=true;
+
+    if(playObj.load==undefined && typeof (playObj.load)==='function' ){ allChildFunctionsArePresent=false;}
+    if(playObj.create==undefined && typeof (playObj.create)==='function' ){ allChildFunctionsArePresent=false;}
+    if(playObj.loop==undefined && typeof (playObj.loop)==='function' ){ allChildFunctionsArePresent=false;}
+
+    console.log('play Unit Test: ');
+    console.log('play exists and it is a function: '+playExists);
+    console.log('loading assets, game initialization, and game loop are present and are functions: '+allChildFunctionsArePresent);
 }();
 
 
