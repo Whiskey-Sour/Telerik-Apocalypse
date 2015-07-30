@@ -363,90 +363,91 @@ var gameModule = function() {
             reloadTimePlayer = 15;
 
         function playerUpdate() {
-            if (player.alive) {
-                //collide with ground and platforms
-                game.physics.arcade.collide(player, gameGroupWithPhysics.platforms);
 
-                //retain speed in air or make it 0 when touching ground
-                if (player.body.touching.down) {
-                    player.body.velocity.x = 0;
-                    player.body.gravity.x = 0;
+            //collide with ground and platforms
+            game.physics.arcade.collide(player, gameGroupWithPhysics.platforms);
+
+            //retain speed in air or make it 0 when touching ground
+            if (player.body.touching.down) {
+                player.body.velocity.x = 0;
+                player.body.gravity.x = 0;
+            }
+
+            if(!player.alive){return;}
+            //movement left/right
+            if (controller.left.isDown) {
+                player.body.velocity.x = -xVelocityScale;
+                player.animations.play('left');
+                player.lastDirection = -1;
+
+                if (!stepSound.isPlaying && player.body.touching.down) {
+                    stepSound.play();
                 }
+            } else if (controller.right.isDown) {
+                player.body.velocity.x = xVelocityScale;
+                player.animations.play('right');
+                player.lastDirection = 1;
 
-                //movement left/right
-                if (controller.left.isDown) {
-                    player.body.velocity.x = -xVelocityScale;
-                    player.animations.play('left');
-                    player.lastDirection = -1;
-
-                    if (!stepSound.isPlaying && player.body.touching.down) {
-                        stepSound.play();
-                    }
-                } else if (controller.right.isDown) {
-                    player.body.velocity.x = xVelocityScale;
-                    player.animations.play('right');
-                    player.lastDirection = 1;
-
-                    if (!stepSound.isPlaying && player.body.touching.down) {
-                        stepSound.play();
-                    }
+                if (!stepSound.isPlaying && player.body.touching.down) {
+                    stepSound.play();
+                }
+            } else {
+                //  Stand still
+                if (player.lastDirection == 1) {
+                    player.animations.play('faceRight');
                 } else {
-                    //  Stand still
-                    if (player.lastDirection == 1) {
-                        player.animations.play('faceRight');
-                    } else {
-                        player.animations.play('faceLeft');
-                    }
-                }
-
-                if (controller.fire.isDown && timer >= reloadTimePlayer && player.ammo > 0) {
-                    bulletPlayer();
-                    timer = 0;
-                    fireSound.play();
-                }
-
-                timer += 1;
-
-                // movement jump
-                // prevent continuous jumping
-                if (player.body.touching.down && !controller.up.isDown) {
-                    canJump = true;
-                }
-
-                // Allow the player to jump if they are touching the ground.
-                if (controller.up.isDown && player.body.touching.down && canJump) {
-                    player.body.velocity.y = -yVelocityScale;
-                    canJump = false;
-                    jumpSound.play();
-                }
-                if (controller.up.isDown) {
-                    player.body.gravity.y = yVelocityScale;
-                } else {
-                    player.body.gravity.y = 700;
-                }
-                if (!player.body.touching.down) {
-                    if (player.lastDirection == 1) {
-                        player.animations.play('faceRightJump');
-                    } else {
-                        player.animations.play('faceLeftJump');
-                    }
-                }
-
-                // resistance in x
-                var speed = Math.abs(player.body.velocity.x);
-                if (speed > 0) {
-                    player.body.gravity.x = (speed / player.body.velocity.x) * 25 * -1;
-                }
-
-                //hit track and check if player is invunerable
-                player.canBeHurt = player.timeOfLastHit + player.immortalTime < game.time.totalElapsedSeconds();
-
-                if (!player.canBeHurt) {
-                    player.alpha = Math.random();
-                } else {
-                    player.alpha = 1;
+                    player.animations.play('faceLeft');
                 }
             }
+
+            if (controller.fire.isDown && timer >= reloadTimePlayer && player.ammo > 0) {
+                bulletPlayer();
+                timer = 0;
+                fireSound.play();
+            }
+
+            timer += 1;
+
+            // movement jump
+            // prevent continuous jumping
+            if (player.body.touching.down && !controller.up.isDown) {
+                canJump = true;
+            }
+
+            // Allow the player to jump if they are touching the ground.
+            if (controller.up.isDown && player.body.touching.down && canJump) {
+                player.body.velocity.y = -yVelocityScale;
+                canJump = false;
+                jumpSound.play();
+            }
+            if (controller.up.isDown) {
+                player.body.gravity.y = yVelocityScale;
+            } else {
+                player.body.gravity.y = 700;
+            }
+            if (!player.body.touching.down) {
+                if (player.lastDirection == 1) {
+                    player.animations.play('faceRightJump');
+                } else {
+                    player.animations.play('faceLeftJump');
+                }
+            }
+
+            // resistance in x
+            var speed = Math.abs(player.body.velocity.x);
+            if (speed > 0) {
+                player.body.gravity.x = (speed / player.body.velocity.x) * 25 * -1;
+            }
+
+            //hit track and check if player is invunerable
+            player.canBeHurt = player.timeOfLastHit + player.immortalTime < game.time.totalElapsedSeconds();
+
+            if (!player.canBeHurt) {
+                player.alpha = Math.random();
+            } else {
+                player.alpha = 1;
+            }
+
         }
 
         function indicatorUpdate(player, oldLives, gameGroupWithPhysics, oldAmmo) {
@@ -462,6 +463,17 @@ var gameModule = function() {
         }
 
         function endGameCheck() {
+            if (player.bonusCount === neededBonusCount && player.alive) {
+                player.kill();
+                winScreen = game.add.sprite(CONSTANTS.endScreen.x, CONSTANTS.endScreen.y, 'win');
+                player.x = 0;
+                game.world.bringToTop(winScreen);
+                window.setTimeout(function() {
+                    game.destroy();
+                    main.menu.createMenu();
+                }, 2500);
+            }
+
             if (player.alive && player.lives <= 0) {
                 player.kill();
                 looseSscreen = game.add.sprite(CONSTANTS.endScreen.x, CONSTANTS.endScreen.y, 'loose');
@@ -474,16 +486,7 @@ var gameModule = function() {
                 }, 2500);
             }
 
-            if (player.bonusCount === neededBonusCount) {
-                player.kill();
-                winScreen = game.add.sprite(CONSTANTS.endScreen.x, CONSTANTS.endScreen.y, 'win');
-                player.x = 0;
-                game.world.bringToTop(winScreen);
-                window.setTimeout(function() {
-                    game.destroy();
-                    main.menu.createMenu();
-                }, 2500);
-            }
+
         }
 
         function botsUpdate() {
