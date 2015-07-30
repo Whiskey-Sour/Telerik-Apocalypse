@@ -4,11 +4,27 @@
 
 /*var test1= typeof (menuObj)=== 'function'? 'pass':'fail';
 console.log('Menu is a function and exists: '+test1);*/
+var GAME=gameModule;
+var MENU=menuModule;
+var ABOUT=aboutModule;
 
+var mainModule= function (game, menu, about) {
+    var main={
+        game: game,
+        menu: menu,
+        about: about,
+        run: function(){
+            this.menu.createMenu();
+        }
+    };
+    return main
+}(GAME,MENU,ABOUT);
+
+var main=mainModule;
 //Menu Unit Test
-var menuTest=function(){
-    var menuFunc=menu,
-        menuObj=menu();
+var menuTest=function(main){
+    var menuFunc=main.menu.createMenu,
+        menuObj=main.menu.createMenu();
     document.body.innerHTML = "";
     var menuExists=typeof (menuFunc)==='function';
 
@@ -21,11 +37,11 @@ var menuTest=function(){
     console.log('menu Unit Test: ');
     console.log('menu exists and it is a function: '+menuExists);
     console.log('menu builder, div builder, button builder, event builder are all present and are functions: '+allChildFunctionsArePresent);
-}();
+}(main);
 
-var aboutTest=function(){
-    var aboutFunc=about,
-        aboutObj=about();
+var aboutTest=function(main){
+    var aboutFunc=main.about.createAboutPage,
+        aboutObj=main.about.createAboutPage();
     document.body.innerHTML = "";
     var aboutExists=typeof (aboutFunc)==='function';
 
@@ -35,11 +51,11 @@ var aboutTest=function(){
     console.log('about Unit Test: ');
     console.log('about exists and it is a function: '+aboutExists);
     console.log('about draw function is present and it is functions: '+allChildFunctionsArePresent);
-}();
+}(main);
 
-var playTest=function(){
-    var playFunc=play,
-        playObj=play();
+var playTest=function(main){
+    var playFunc=main.game.play.startGame,
+        playObj=main.game.play.startGame();
     Phaser.World=null;
 
 
@@ -54,6 +70,6 @@ var playTest=function(){
     console.log('play Unit Test: ');
     console.log('play exists and it is a function: '+playExists);
     console.log('loading assets, game initialization, and game loop are present and are functions: '+allChildFunctionsArePresent);
-}();
+}(main);
 
 
