@@ -1,7 +1,7 @@
 var aboutModule=function(){
     var aboutObj={
         createAboutPage: function(){
-            about();
+            return about();
         }
     };
     function about () {

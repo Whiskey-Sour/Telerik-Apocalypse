@@ -1,7 +1,7 @@
 var menuModule=function(){
     var menuObj={
         createMenu: function(){
-            menu();
+            return menu();
         }
     };
     function menu() {

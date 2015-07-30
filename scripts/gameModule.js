@@ -1,7 +1,7 @@
 var gameModule=function(){
     var game={
         startGame: function(){
-            play();
+            return play();
         }
     };
     function play () {

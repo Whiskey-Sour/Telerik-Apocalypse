@@ -21,6 +21,7 @@ var mainModule= function (game, menu, about) {
 }(GAME,MENU,ABOUT);
 
 var main=mainModule;
+console.log(main.menu.createMenu());
 //Menu Unit Test
 var menuTest=function(main){
     var menuFunc=main.menu.createMenu,
