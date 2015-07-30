@@ -21,7 +21,6 @@ var mainModule= function (game, menu, about) {
 }(GAME,MENU,ABOUT);
 
 var main=mainModule;
-console.log(main.menu.createMenu());
 //Menu Unit Test
 var menuTest=function(main){
     var menuFunc=main.menu.createMenu,
@@ -55,8 +54,8 @@ var aboutTest=function(main){
 }(main);
 
 var playTest=function(main){
-    var playFunc=main.game.play.startGame,
-        playObj=main.game.play.startGame();
+    var playFunc=main.game.startGame,
+        playObj=main.game.startGame();
     Phaser.World=null;
 
 
