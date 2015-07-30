@@ -35,13 +35,15 @@ var menu = function() {
 
             $('#' + buttonIdName).on('click', function() {
                 $('#' + divIdName).remove();
-                play();
+                main.game.startGame();
+                //play();
             });
 
             buttonIdName = buttonsIdNames[1];
             $('#' + buttonIdName).on('click', function() {
                 $('#' + divIdName).remove();
-                about();
+                main.about.createAboutPage();
+                //about();
             });
         }
 

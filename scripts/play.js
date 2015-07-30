@@ -80,7 +80,7 @@ var play = function() {
             game.world.bringToTop(looseSscreen);
             window.setTimeout(function(){
                 game.destroy();
-                menu();
+                main.menu.createMenu();
             }, 2500);
         }
 
@@ -91,7 +91,7 @@ var play = function() {
             game.world.bringToTop(winScreen);
             window.setTimeout(function(){
                 game.destroy();
-                menu();
+                main.menu.createMenu();
             }, 2500);
         }
         // console.log(player.x);

@@ -24,7 +24,8 @@ var about = function () {
     $('#btn-back').on('click', function() {
         $('svg').remove();
         $($storySection).remove();
-        menu();
+        main.menu.createMenu();
+        //menu();
     });
 
     function drawControlsSection() {
