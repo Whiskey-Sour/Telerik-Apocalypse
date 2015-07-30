@@ -243,21 +243,25 @@ var gameModule = function() {
         }
 
         function createSounds() {
-            game.sound.volume = 0.5;
+            game.sound.volume = 0.05;
             jumpSound = game.add.audio('jump');
+            jumpSound.volume = 0.5;
             fireSound = game.add.audio('fire');
+            fireSound.volume = 0.5;
             botHitSound = game.add.audio('bothit');
             pickupSound = game.add.audio('pickup');
             playerDeathSound = game.add.audio('playerdeath');
             themeSound = game.add.audio('theme');
             stepSound = game.add.audio('step');
-            stepSound.volume = 0.5;
+            stepSound.volume = 0.3;
             playerHitSound = game.add.audio('playerhit');
             themeSound.loopFull();
         }
 
-        function createEvents(){
+        function createEvents() {
             controller.mute.onDown.add(muteSound, this);
+            controller.volumeUp.onDown.add(volumeUp, this);
+            controller.volumeDown.onDown.add(volumeDown, this);
         }
 
         /* Single Object Creators*/
@@ -333,6 +337,8 @@ var gameModule = function() {
             controller = game.input.keyboard.createCursorKeys();
             controller.fire = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
             controller.mute = game.input.keyboard.addKey(Phaser.Keyboard.M);
+            controller.volumeUp = game.input.keyboard.addKey(Phaser.Keyboard.NUMPAD_ADD);
+            controller.volumeDown = game.input.keyboard.addKey(Phaser.Keyboard.NUMPAD_SUBTRACT);
         }
 
         /*Draw Functions*/
@@ -585,8 +591,22 @@ var gameModule = function() {
             player.lives = 0;
         }
 
-        function muteSound(){
+        function muteSound() {
             game.sound.mute = !game.sound.mute;
+        }
+
+        function volumeUp(){
+            if (game.sound.volume < 1) {
+                game.sound.volume += 0.02;
+                console.log(game.sound.volume);
+            }
+        }
+
+        function volumeDown(){
+            if (game.sound.volume > 0) {
+                game.sound.volume -= 0.02;
+                console.log(game.sound.volume);
+            }
         }
 
         return {
