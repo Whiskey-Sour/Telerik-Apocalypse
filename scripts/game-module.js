@@ -89,6 +89,8 @@ var gameModule = function() {
             createBonusTokens();
             createTurret();
             createSounds();
+            createController();
+            createEvents()
         }
 
         // game loop
@@ -98,7 +100,6 @@ var gameModule = function() {
             oldAmmo = player.ammo;
 
             //Updates every game loop iteration
-            createController();
             playerUpdate();
             botsUpdate();
             cameraUpdate();
@@ -255,6 +256,10 @@ var gameModule = function() {
             themeSound.loopFull();
         }
 
+        function createEvents(){
+            controller.mute.onDown.add(muteSound, this);
+        }
+
         /* Single Object Creators*/
         function bulletPlayer() {
             //generates a bullet coming from player
@@ -327,6 +332,7 @@ var gameModule = function() {
         function createController() {
             controller = game.input.keyboard.createCursorKeys();
             controller.fire = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+            controller.mute = game.input.keyboard.addKey(Phaser.Keyboard.M);
         }
 
         /*Draw Functions*/
@@ -577,6 +583,10 @@ var gameModule = function() {
 
         function dieSpike(player) {
             player.lives = 0;
+        }
+
+        function muteSound(){
+            game.sound.mute = !game.sound.mute;
         }
 
         return {
