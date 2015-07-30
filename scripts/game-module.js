@@ -4,20 +4,22 @@ var gameModule=function(){
             return play();
         }
     };
+
     function play () {
+        //Phaser init
         var game = new Phaser.Game(CONSTANTS.screen.width, CONSTANTS.screen.height, Phaser.AUTO, '', {
             preload: preload,
             create: create,
             update: update
         });
-
+        //Container for all physics object groups, and init
         var gameGroupWithPhysics = {
             add: function (groupName) {
                 this[groupName] = game.add.group();
                 this[groupName].enableBody = true;
             }
         };
-
+        //Loading assets
         function preload() {
             game.load.image('loose', 'assets/loose-screen.png');
             game.load.image('win', 'assets/win-screen.png');
@@ -29,22 +31,30 @@ var gameModule=function(){
             game.load.image('spike', 'assets/spike.png');
             game.load.image('firstaid', 'assets/firstaid.png');
             game.load.image('background', 'assets/game-bg.png');
-            game.load.spritesheet('john', 'assets/john.png', 158.5, 225);
-            game.load.spritesheet('robot', 'assets/robot.png', 96, 202);
+            game.load.spritesheet('john', 'assets/john.png', frameWidthJohn, frameHeightJohn);
+            game.load.spritesheet('robot', 'assets/robot.png', frameWidthBot, frameHeightBot);
             game.load.spritesheet('border', 'assets/border-block.png', 22, 32);
         }
-
-        var worldHeight = 900,
-            velocityScale = 175,
-            canJump = true,
-            controller,
+        //Varibles used in the game
+        var controller,
             platforms,
             background,
             looseSscreen,
             winScreen,
             player,
-            turret;
-
+            oldLives,
+            oldAmmo,
+            turret,
+            canJump = true,
+            worldHeight = 900,
+            xVelocityScale = 175,
+            yVelocityScale = 300,
+            frameWidthJohn = 158.5,
+            frameHeightJohn = 225,
+            frameWidthBot = 96,
+            frameHeightBot = 202,
+           totalBulletVelocityScale = 300;
+        // init game
         function create() {
             createWorld();
             createAllGroups();
@@ -56,13 +66,16 @@ var gameModule=function(){
             createSpikes();
             createBonusTokens();
             createTurret();
-            gameGroupWithPhysics.add('Jimmy');
         }
+        // game loop
+
 
         function update() {
-            var oldLives = player.lives;
-            var oldAmmo = player.ammo;
+            //Old values for indicators
+            oldLives = player.lives;
+            oldAmmo = player.ammo;
 
+            //Updates every game loop itteration
             createController();
             playerUpdate();
             botsUpdate();
@@ -70,44 +83,14 @@ var gameModule=function(){
             playerCollision();
             bulletsUpdate();
             turretUpdate();
-
-            if (player.lives !== oldLives) {
-                destroyGroup(gameGroupWithPhysics.lives);
-                drawHearts();
-            }
-            if (player.ammo !== oldAmmo) {
-                destroyGroup(gameGroupWithPhysics.playerAmmo);
-                drawAmmo();
-            }
-            if (player.alive && player.lives <= 0) {
-                player.kill();
-                looseSscreen = game.add.sprite(0, 300, 'loose');
-                player.x = 0;
-                game.world.bringToTop(looseSscreen);
-                window.setTimeout(function () {
-                    game.destroy();
-                    main.menu.createMenu();
-                }, 2500);
-            }
-
-            if (player.bonusCount === 4) {
-                player.kill();
-                winScreen = game.add.sprite(0, 300, 'win');
-                player.x = 0;
-                game.world.bringToTop(winScreen);
-                window.setTimeout(function () {
-                    game.destroy();
-                    main.menu.createMenu();
-                }, 2500);
-            }
-            // console.log(player.x);
-            //console.log(
-            // player.body.gravity.y);
+            indicatorUpdate(player, oldLives, gameGroupWithPhysics, oldAmmo);
+            endGameCheck();
         }
 
 
         /*Group Management*/
         function createAllGroups() {
+            //The string arguments is the name of the variable used later
             gameGroupWithPhysics.add('platforms');
             gameGroupWithPhysics.add('botBoundaries');
             gameGroupWithPhysics.add('bonus');
@@ -127,16 +110,18 @@ var gameModule=function(){
         /*Populating game world*/
         function createBots() {
             var dir;
-            for (var i = 0; i < 9; i += 1) {
+            //bots in second segment
+            for (var i = 0; i < CONSTANTS.numberOfBots; i += 1) {
                 dir = Math.random() >= 0.5 ? 1 : -1;
-                createBot(800 + i * 80, 700, dir);
+                createBot(CONSTANTS.screen.width + i * 80, 700, dir);
             }
+            //single bot in the first segment
             createBot(550, worldHeight - 650, 1);
         }
 
         function createWorld() {
             //worldSize
-            game.world.setBounds(0, 0, 3200, worldHeight);
+            game.world.setBounds(0, 0, CONSTANTS.screen.width*4, worldHeight);
 
             //Physics
             game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -145,8 +130,6 @@ var gameModule=function(){
             background = game.add.sprite(0, 0, 'background');
             background.scale.setTo(3, 1.1);
             background.alpha = 1;
-
-            //PlaceHolder
         }
 
         function SegmentOne() {
@@ -157,7 +140,7 @@ var gameModule=function(){
         }
 
         function SegmentTwo() {
-            createLedge(800, 850, true, 2, 1);
+            createLedge(CONSTANTS.screen.width, 850, true, 2, 1);
         }
 
         function SegmentThree() {
@@ -181,13 +164,14 @@ var gameModule=function(){
         }
 
         function createBonusTokens() {
-            var codeBonus1 = gameGroupWithPhysics.bonus.create(700, worldHeight - 600, 'key');
-            var codeBonus2 = gameGroupWithPhysics.bonus.create(1200, 800, 'key');
-            var codeBonus3 = gameGroupWithPhysics.bonus.create(1920, 250, 'key');
-            var codeBonus4 = gameGroupWithPhysics.bonus.create(3100, 750, 'key');
+            gameGroupWithPhysics.bonus.create(700, worldHeight - 600, 'key');
+            gameGroupWithPhysics.bonus.create(1200, 800, 'key');
+            gameGroupWithPhysics.bonus.create(1920, 250, 'key');
+            gameGroupWithPhysics.bonus.create(3100, 750, 'key');
         }
 
         function createSpikes() {
+            //segement three
             var spikeCount = 15,
                 spike,
                 i;
@@ -229,32 +213,34 @@ var gameModule=function(){
         }
 
         function createTurret() {
+            //sprite
             turret = game.add.sprite(3000, 700, 'turret');
             turret.scale.setTo(0.5);
             turret.angle = 30;
+            //additional atributes
             turret.reloadTime = 2;
             turret.timeOfLastShot = game.time.totalElapsedSeconds();
         }
 
         /* Single Object Creators*/
         function bulletPlayer() {
+
             var bullet = gameGroupWithPhysics.bullets.create(player.x + 50 * player.lastDirection, player.y, 'shot');
             game.physics.arcade.enable(bullet);
             bullet.body.velocity.x = 300 * player.lastDirection;
             player.ammo -= 1;
             return bullet;
-            //return bullet;
-        }
+        } //generates a bullet coming from player
 
         function bulletTurret() {
             var bullet = gameGroupWithPhysics.bullets.create(turret.x - 30, turret.y, 'shot');
             game.physics.arcade.enable(bullet);
-            bullet.body.velocity.y = -300 * Math.sin(turret.angle * Math.PI / 180);
-            bullet.body.velocity.x = -300 * Math.cos(turret.angle * Math.PI / 180);
+
+            bullet.body.velocity.y = -totalBulletVelocityScale * Math.sin(turret.angle * Math.PI / 180);
+            bullet.body.velocity.x = -totalBulletVelocityScale * Math.cos(turret.angle * Math.PI / 180);
             player.ammo -= 1;
             return bullet;
-            //return bullet;
-        }
+        } //generates bullet from turret
 
         function createLedge(ledgeX, ledgeY, putBorders, scaleX, scaleY) {
             var platformOriginalWidth = 400,
@@ -286,8 +272,8 @@ var gameModule=function(){
                 borderRight = gameGroupWithPhysics.botBoundaries.create(ledgeX + ledgeWidth, borderY, 'border');
                 borderRight.body.immovable = true;
                 borderRight.renderable = false;
-            }
-        }
+            } //border creation
+        } // create ledges with option for placing borders that constrain botss
 
         function createBot(x, y, dir) {
             var bot = game.add.sprite(x, y, 'robot');
@@ -326,8 +312,8 @@ var gameModule=function(){
         }
 
         /*Update Function*/
-        var timer = 0;
-        var reload = 5;
+        var timer = 0,
+            reloadTime = 15;
 
         function playerUpdate() {
             //collide with ground and platforms
@@ -343,13 +329,13 @@ var gameModule=function(){
                 //movement left/right
                 if (controller.left.isDown) {
                     //  Move to the left
-                    player.body.velocity.x = -velocityScale;
+                    player.body.velocity.x = -xVelocityScale;
                     //console.log(player.lastDirection);
                     player.animations.play('left');
                     player.lastDirection = -1;
                 } else if (controller.right.isDown) {
                     //  Move to the right
-                    player.body.velocity.x = velocityScale;
+                    player.body.velocity.x = xVelocityScale;
                     player.animations.play('right');
                     player.lastDirection = 1;
                 } else {
@@ -361,7 +347,8 @@ var gameModule=function(){
                     }
                 }
 
-                if (controller.fire.isDown && timer >= 15 && player.ammo > 0) {
+
+                if (controller.fire.isDown && timer >= reloadTime && player.ammo > 0) {
                     bulletPlayer();
                     timer = 0;
                 }
@@ -372,12 +359,13 @@ var gameModule=function(){
                     canJump = true;
                 }
                 //  Allow the player to jump if they are touching the ground.
+
                 if (controller.up.isDown && player.body.touching.down && canJump) {
-                    player.body.velocity.y = -300;
+                    player.body.velocity.y = -yVelocityScale;
                     canJump = false;
                 }
                 if (controller.up.isDown) {
-                    player.body.gravity.y = 300;
+                    player.body.gravity.y = yVelocityScale;
                 } else {
                     player.body.gravity.y = 700;
                 }
@@ -393,7 +381,7 @@ var gameModule=function(){
                 if (speed > 0) {
                     player.body.gravity.x = (speed / player.body.velocity.x) * 25 * -1;
                 }
-
+                //hit track and check if player is invunerable
                 if (player.timeOfLastHit + player.immortalTime < game.time.totalElapsedSeconds()) {
                     player.canBeHurt = true;
                 } else {
@@ -404,6 +392,41 @@ var gameModule=function(){
                 } else {
                     player.alpha = 1;
                 }
+            }
+        }
+
+        function indicatorUpdate(player, oldLives, gameGroupWithPhysics, oldAmmo) {
+            if (player.lives !== oldLives) {
+                destroyGroup(gameGroupWithPhysics.lives);
+                drawHearts();
+            }
+            if (player.ammo !== oldAmmo) {
+                destroyGroup(gameGroupWithPhysics.playerAmmo);
+                drawAmmo();
+            }
+        }
+
+        function endGameCheck() {
+            if (player.alive && player.lives <= 0) {
+                player.kill();
+                looseSscreen = game.add.sprite(CONSTANTS.endScreen.x, CONSTANTS.endScreen.y, 'loose');
+                player.x = 0;
+                game.world.bringToTop(looseSscreen);
+                window.setTimeout(function () {
+                    game.destroy();
+                    main.menu.createMenu();
+                }, 2500);
+            }
+
+            if (player.bonusCount === 4) {
+                player.kill();
+                winScreen = game.add.sprite(CONSTANTS.endScreen.x, CONSTANTS.endScreen.y, 'win');
+                player.x = 0;
+                game.world.bringToTop(winScreen);
+                window.setTimeout(function () {
+                    game.destroy();
+                    main.menu.createMenu();
+                }, 2500);
             }
         }
 
@@ -435,7 +458,7 @@ var gameModule=function(){
                 bot.direction *= -1;
             }
             //movement
-            bot.body.velocity.x = velocityScale * 1.2 * bot.direction;
+            bot.body.velocity.x = xVelocityScale * 1.2 * bot.direction;
             if (bot.body.velocity.x <= 0) {
                 bot.animations.play('left');
             } else {
@@ -455,27 +478,26 @@ var gameModule=function(){
             game.camera.y = player.y - 300;
         }
 
-        var timeOfLastShotT = 0;
-        var reloadTime = 2;
+        var timeOfLastShotT = 0,
+        reloadTime = 2;
 
         function turretUpdate() {
-            var xdist = Math.abs(turret.x - player.x);
-            var ydist = turret.y - player.y;
-            //console.log(xdist);
+            var xDistance = Math.abs(turret.x - player.x);
+            var yDistance = turret.y - player.y;
 
-            var angle = Math.atan(ydist / xdist) * 180 / Math.PI;
+            var angle = Math.atan(yDistance / xDistance) * 180 / Math.PI;
 
             turret.angle = angle;
-            if (timeOfLastShotT + reloadTime <= game.time.totalElapsedSeconds() && xdist < 1000) {
+            if (timeOfLastShotT + reloadTime <= game.time.totalElapsedSeconds() && xDistance < 1000) {
                 bulletTurret();
                 timeOfLastShotT = game.time.totalElapsedSeconds();
             }
 
             turret.angle = angle - 10.1;
-            //var
         }
 
         function playerCollision() {
+
             game.physics.arcade.collide(gameGroupWithPhysics.bonus, platforms);
             game.physics.arcade.overlap(player, gameGroupWithPhysics.bonus, collect, null, this);
             game.physics.arcade.overlap(player, gameGroupWithPhysics.bots, die, null, this);
@@ -485,22 +507,18 @@ var gameModule=function(){
         /*Collision Consequences*/
         function collect(player, bon) {
             bon.kill();
-            player.score += 10;
-            //player.ammo = 5;
             player.bonusCount += 1;
-            //console.log(player.score);
+
         }
 
         function hitBot(bullet, bot) {
             bullet.kill();
             bot.kill();
-            player.score += 10;
-            //console.log(player.score);
+
         }
 
         function hitWall(bullet, plat) {
             bullet.kill();
-            //console.log(player.score);
         }
 
         function die(player, bot) {
@@ -508,7 +526,6 @@ var gameModule=function(){
                 player.lives -= 1;
                 player.timeOfLastHit = game.time.totalElapsedSeconds();
             }
-            //console.log(player.score);
         }
 
         function dieSpike(player, spike) {
