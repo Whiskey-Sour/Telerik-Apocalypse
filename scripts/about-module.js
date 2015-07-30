@@ -1,9 +1,10 @@
-var aboutModule=function(){
-    var aboutObj={
+var aboutModule = function(){
+    var aboutObj = {
         createAboutPage: function(){
             return about();
         }
     };
+
     function about () {
         var $storySection,
             $button,
@@ -31,7 +32,6 @@ var aboutModule=function(){
             $('svg').remove();
             $($storySection).remove();
             main.menu.createMenu();
-            //menu();
         });
 
         function drawControlsSection() {
@@ -142,7 +142,8 @@ var aboutModule=function(){
         return {
             draw: drawControlsSection
         };
-    };
+    }
+
     return aboutObj;
 }();
 

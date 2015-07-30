@@ -7,6 +7,5 @@ var CONSTANTS = {
         x: 0,
         y: 300
     },
-    numberOfBots: 9,
-
+    numberOfBots: 9
 };
